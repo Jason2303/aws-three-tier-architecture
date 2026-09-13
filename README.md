@@ -117,7 +117,8 @@ terraform plan
 terraform apply
 ```
 
-Expected Output
+### Expected Output
+
 ![Three-tier AWS architecture](./output.png)
 
 To tear everything down:
@@ -163,15 +164,15 @@ Builds the VPC (`10.0.0.0/16`) and eight subnets across two Availability Zones â
 
 Defines five security groups, one per trust boundary: `external_alb_sg`, `web_sg`, `internal_alb_sg`, `app_sg`, `db_sg`. Every ingress rule after the internet-facing edge references the previous tier's security group ID rather than a CIDR block. `db_sg` has an ingress rule from `app_sg` on port 5432 and no egress rules at all, since RDS never needs to initiate outbound traffic. `web_sg` and `app_sg` each carry one deliberate exception. They carry  outbound HTTPS to `0.0.0.0/0` so EC2 instances can get OS updates via NAT. 
 
-modules/alb
+`modules/alb`
 
 Creates two Application Load Balancers. The external ALB sits in the public subnets, is internet-facing, and listens on both 443 (HTTPS, forwarding to the web target group) and 80 (which only issues a 301 redirect to 443). The internal ALB has `internal = true`, giving it no public IP, and sits in the private-web subnets listening on plain HTTP 80, forwarding to the app target group. Each ALB has its own target group with a `/health` health check, and each target group is what the corresponding ASG registers its instances into. Outputs both ALBs' DNS names and both target groups' ARNs.
 
-modules/asg
+`modules/asg`
 
 One module, called twice from the root (once for web, once for app) with different variables each time, rather than duplicated as two separate modules. Contains a `data "aws_ami"` lookup that resolves the latest Amazon Linux 2023 image at every plan/apply, so the deployment always uses a current, patched image. A launch template references that AMI along with the tier's instance type and security group. An Auto Scaling Group reads the launch template, creates instances across the subnet IDs passed in, registers each instance into the target group ARN passed in, and maintains the configured min/max/desired count replacing any instance that fails its health check without manual intervention.
 
-modules/rds
+`modules/rds`
 
 Creates a DB subnet group spanning both isolated-db subnets. The RDS instance runs PostgreSQL 16.15 on `db.t3.micro`, with `storage_encrypted = true` for encryption at rest and `manage_master_user_password = true` so AWS generates and stores the master password in Secrets Manager rather than accepting one as a Terraform variable. Attached to `db_sg` from the security-groups module and placed in the DB subnet group, with no public accessibility and no route to the internet at the network layer underneath it. Outputs the connection endpoint and the Secrets Manager secret's ARN.
 

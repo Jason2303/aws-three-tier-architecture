@@ -47,6 +47,12 @@ data "aws_ami" "amazon_linux" {
     values = ["al2023-ami-*-x86_64"]
   }
 
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+}
+
 #IAM Role to Access the RDS PostgreSQL DB
 resource "aws_iam_role" "instance_role" {
   name = "${var.name}-instance-role"
@@ -69,7 +75,6 @@ resource "aws_iam_role" "instance_role" {
 
 #IAM Role Policy
 resource "aws_iam_role_policy" "secrets_access" {
-  count = var.db_secret_arn != "" ? 1 : 0
 
   name = "${var.name}-secrets-access"
   role = aws_iam_role.instance_role.id
@@ -88,10 +93,4 @@ resource "aws_iam_role_policy" "secrets_access" {
 resource "aws_iam_instance_profile" "instance_profile" {
   name = "${var.name}-instance-profile"
   role = aws_iam_role.instance_role.name
-}
-
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
-  }
 }

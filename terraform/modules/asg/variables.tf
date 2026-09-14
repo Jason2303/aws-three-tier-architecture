@@ -17,3 +17,8 @@ variable "subnet_ids" {
 variable "target_group_arns" {
   type = list(string)
 }
+
+variable "db_secret_arn" {
+  type    = string
+  default = ""
+}

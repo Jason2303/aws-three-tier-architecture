@@ -44,6 +44,8 @@ The instance's `master_user_secret` attribute exposes the secret's ARN, which th
 
 The database **username** is given as a Terraform variable (`db_username`), since a username alone is not a secret.
 
+**Retrieval is scoped by IAM, not by network access alone.** The app tier's EC2 instances assume an IAM role via an instance profile, with a policy granting only `secretsmanager:GetSecretValue` against the ARN of the RDS secret. The web tier's EC2 instance does not hold this permission meaning if a malicious actor compromises the web tier specifically, they would have no IAM permission to retrieve the database credentials.
+
 ---
 
 ## 3. Encryption at Rest and in Transit

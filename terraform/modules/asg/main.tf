@@ -9,6 +9,10 @@ resource "aws_launch_template" "ec2_launch_template" {
   tags = {
     Name = "${var.name}-launch-template"
   }
+  
+  iam_instance_profile {
+  name = aws_iam_instance_profile.instance_profile.name
+  }
 }
 
 #Autoscaling Group

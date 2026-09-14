@@ -40,5 +40,6 @@ module "app_asg" {
   security_group_id  = module.security_groups.app_sg_id
   subnet_ids         = module.networking.private_app_subnet_ids
   target_group_arns = [module.alb.app_target_group_arn]
+  db_secret_arn      = module.rds.db_secret_arn
 }
 
